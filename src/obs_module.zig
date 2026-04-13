@@ -5,20 +5,35 @@ pub const obs = @cImport({
     @cInclude("util/base.h");
 });
 
-pub fn log(comptime level: c_int, comptime fmt: []const u8, args: anytype) void {
-    var buf: [8192]u8 = undefined;
+pub const log = struct {
+    pub fn info(comptime fmt: []const u8, args: anytype) void {
+        logImpl(obs.LOG_INFO, fmt, args);
+    }
+    pub fn warn(comptime fmt: []const u8, args: anytype) void {
+        logImpl(obs.LOG_WARNING, fmt, args);
+    }
+    pub fn err(comptime fmt: []const u8, args: anytype) void {
+        logImpl(obs.LOG_ERROR, fmt, args);
+    }
+    pub fn debug(comptime fmt: []const u8, args: anytype) void {
+        logImpl(obs.LOG_DEBUG, fmt, args);
+    }
 
-    var fbs = std.io.fixedBufferStream(buf[0 .. buf.len - 1]);
-    fbs.writer().print("[" ++ consts.plugin_name ++ "] " ++ fmt, args) catch |err| switch (err) {
-        error.NoSpaceLeft => {},
-        else => return,
-    };
+    fn logImpl(comptime level: c_int, comptime fmt: []const u8, args: anytype) void {
+        var buf: [8192]u8 = undefined;
 
-    const written = fbs.getWritten();
-    buf[written.len] = 0;
-    const msg = buf[0..written.len :0];
-    obs.blog(level, "%s", msg.ptr);
-}
+        var fbs = std.io.fixedBufferStream(buf[0 .. buf.len - 1]);
+        fbs.writer().print("[" ++ consts.plugin_name ++ "] " ++ fmt, args) catch |e| switch (e) {
+            error.NoSpaceLeft => {},
+            else => return,
+        };
+
+        const written = fbs.getWritten();
+        buf[written.len] = 0;
+        const msg = buf[0..written.len :0];
+        obs.blog(level, "%s", msg.ptr);
+    }
+};
 
 var obs_module_pointer: ?*obs.obs_module_t = null;
 
@@ -31,7 +46,7 @@ fn obs_current_module() ?*obs.obs_module_t {
 }
 
 export fn obs_module_ver() u32 {
-    return @intCast(obs.LIBOBS_API_VER);
+    return obs.LIBOBS_API_VER;
 }
 
 var obs_module_lookup: ?*obs.lookup_t = null;
