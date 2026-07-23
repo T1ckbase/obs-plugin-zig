@@ -1,21 +1,21 @@
 # obs-plugin-zig
 
-An OBS Studio plugin written in Zig. It only works on Windows, and I don’t think this setup is correct.
+An OBS Studio plugin written in Zig for Windows.
 
 ## Build
 
+### Debug
+
 ```sh
-zig build -Doptimize=ReleaseFast
+zig build
 ```
 
-The packaged plugin is written to:
+### Release
 
-```text
-zig-out/obs-plugin-zig/
+```sh
+zig build --release=fast
 ```
 
-To test it in OBS, copy that folder to:
+## Installation
 
-```text
-C:\ProgramData\obs-studio\plugins\
-```
+https://obsproject.com/kb/plugins-guide#install-or-remove-plugins
